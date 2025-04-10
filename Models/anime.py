@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Integer, DateTime, UniqueConstraint
 from datetime import datetime
 from typing import Union
 
-from models import Base
+from Models import Base
 
 class Anime(Base):
     __tablename__ = 'anime_catalog'

@@ -1,8 +1,8 @@
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
-from model.base import Base
-from model.anime import Anime
+from Models.base import Base
+from Models.anime import Anime
 
 import os
 
