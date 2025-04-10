@@ -4,99 +4,141 @@ from flask_cors import CORS
 from Models import Session, Anime
 from sqlalchemy.exc import IntegrityError
 from schemas.errorSchema import ErrorSchema
-from schemas.animeSchema import AnimeSchemaRemove, AnimeListSchemaResponse, AnimeSchemaRequest, list_animes
+from schemas.animeSchema import (
+    AnimeSchemaRemove,
+    AnimeListSchemaResponse,
+    AnimeSchemaRequest,
+    AnimeSchemaPath,
+    list_animes
+)
 
-info = Info(title="Health care", version="1.0.0")
-app = OpenAPI(__name__, info = info)
+info = Info(title="Anime Watcher API", version="1.0.0")
+app = OpenAPI(__name__, info=info)
 CORS(app)
 
 swagger_tag = Tag(name="Swagger", description="Swagger endpoints")
-Anime_tag = Tag(name="Anime", description="Anime endpoints")
+anime_tag = Tag(name="Anime", description="Gerenciamento de animes assistidos")
 
 @app.get('/', tags=[swagger_tag])
 def home():
     """
-    A rota padrão leva você às opções de documentação do endpoint.
+    Redireciona para a documentação interativa da API.
     """
     return redirect('/openapi')
 
-@app.post('/Anime', tags=[Anime_tag], 
-          responses =
-          {
-              "200": AnimeListSchemaResponse, "400": ErrorSchema, "409": ErrorSchema, "500": ErrorSchema
-          })
-def add_Anime(form: AnimeSchemaRequest):
-    """
-    endpoint usado para adicionar uma nova Anime e retorna a lista das que já foram registradas.
-    """
 
-    Anime = Anime(
-        nome= form.nome,
-        Anime= form.Anime
+@app.post('/anime', tags=[anime_tag],
+          responses={
+              "200": AnimeListSchemaResponse,
+              "400": ErrorSchema,
+              "409": ErrorSchema,
+              "500": ErrorSchema
+          })
+def add_anime(form: AnimeSchemaRequest):
+    """
+    Adiciona um novo anime e retorna a lista atualizada de animes.
+    """
+    anime = Anime(
+        titulo=form.titulo,
+        genero=form.genero,
+        episodios=form.episodios,
+        status=form.status
     )
 
     try:
         session = Session()
-        session.add(Anime)
+        session.add(anime)
         session.commit()
 
-        Animes = session.query(Anime).all()
-
+        animes = session.query(Anime).all()
         session.close()
 
-        if not Animes:
-            return {"message": "Glucoses not found"}, 404
-        else:
-            return list_animes(Animes), 200
-    except IntegrityError as ex:
-        {"message": "Anime já registrada no banco de dados"}, 409
-    except Exception as ex:
-        {"message": "não foi possível salvar"}, 500
-    
+        return list_animes(animes), 200
 
-@app.get('/Animes', tags=[Anime_tag], 
-         responses = 
-         {
-             "200": AnimeListSchemaResponse, "404": ErrorSchema, "500": ErrorSchema
+    except IntegrityError:
+        return {"message": "Anime já registrado no banco de dados"}, 409
+    except Exception:
+        return {"message": "Não foi possível salvar o anime"}, 500
+
+
+@app.get('/animes', tags=[anime_tag],
+         responses={
+             "200": AnimeListSchemaResponse,
+             "404": ErrorSchema,
+             "500": ErrorSchema
          })
-def get_all_Animes():
+def get_all_animes():
     """
-    endpoint usado para listar todas as Animes registradas.
+    Lista todos os animes registrados.
     """
     try:
         session = Session()
-        Animes = session.query(Anime).all()
-        
+        animes = session.query(Anime).all()
         session.close()
 
-        if not Animes:
-            return {"message": "Glucoses not found"}, 404
+        if not animes:
+            return {"message": "Nenhum anime encontrado"}, 404
         else:
-            return list_animes(Animes), 200
+            return list_animes(animes), 200
     except Exception as ex:
-        return {"message": ex}, 500
+        return {"message": str(ex)}, 500
 
-@app.delete('/Anime', tags=[Anime_tag],
-            responses={"200": AnimeListSchemaResponse, "404": ErrorSchema, "500": ErrorSchema})
-def del_Anime(query: AnimeSchemaRemove):
-    """Deleta um registro de Anime
-    Retorna uma lista de Animes.
+
+@app.delete('/anime', tags=[anime_tag],
+            responses={
+                "200": AnimeListSchemaResponse,
+                "404": ErrorSchema,
+                "500": ErrorSchema
+            })
+def delete_anime(query: AnimeSchemaRemove):
     """
-
-    # criando conexão com a base
+    Remove um anime pelo ID e retorna a lista atualizada.
+    """
     session = Session()
-    # fazendo a remoção
     count = session.query(Anime).filter(Anime.id == query.id).delete()
     session.commit()
 
-    Animes = session.query(Anime).all()
-
+    animes = session.query(Anime).all()
     session.close()
 
     try:
         if count:
-            return list_animes(Animes), 200
+            return list_animes(animes), 200
         else:
-            return {"mesage": "Anime não encontrado."}, 404
+            return {"message": "Anime não encontrado"}, 404
     except Exception as ex:
-        return {"message": ex}, 500
+        return {"message": str(ex)}, 500
+
+
+@app.put('/anime/<int:id>', tags=[anime_tag],
+         responses={
+             "200": AnimeListSchemaResponse,
+             "404": ErrorSchema,
+             "400": ErrorSchema,
+             "500": ErrorSchema
+         })
+def update_anime(path: AnimeSchemaPath, form: AnimeSchemaRequest):
+    """
+    Atualiza um anime existente pelo ID.
+    """
+    try:
+        session = Session()
+        anime = session.query(Anime).filter(Anime.id == path.id).first()
+
+        if not anime:
+            session.close()
+            return {"message": "Anime não encontrado"}, 404
+
+        anime.titulo = form.titulo
+        anime.genero = form.genero
+        anime.episodios = form.episodios
+        anime.status = form.status
+
+        session.commit()
+        animes = session.query(Anime).all()
+        session.close()
+
+        return list_animes(animes), 200
+
+    except Exception as ex:
+        return {"message": f"Erro ao atualizar: {str(ex)}"}, 500

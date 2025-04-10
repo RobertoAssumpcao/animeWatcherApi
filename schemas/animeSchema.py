@@ -35,6 +35,9 @@ class AnimeSchemaRemove(BaseModel):
     """
     id: int = 0
 
+class AnimeSchemaPath(BaseModel):
+    id: int
+
 def list_animes(animes: list[Anime]):
     result = []
 
