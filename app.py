@@ -9,6 +9,7 @@ from schemas.animeSchema import (
     AnimeListSchemaResponse,
     AnimeSchemaRequest,
     AnimeSchemaPath,
+    AnimeEstatisticasResponse,
     list_animes
 )
 
@@ -142,3 +143,37 @@ def update_anime(path: AnimeSchemaPath, form: AnimeSchemaRequest):
 
     except Exception as ex:
         return {"message": f"Erro ao atualizar: {str(ex)}"}, 500
+
+@app.get('/animes/estatisticas', tags=[anime_tag],
+         responses={200: AnimeEstatisticasResponse, 500: ErrorSchema})
+def estatisticas_animes():
+    """
+    Gera estatísticas sobre os animes assistidos.
+    """
+    try:
+        session = Session()
+
+        animes = session.query(Anime).all()
+
+        total = len(animes)
+        media_episodios = round(sum([a.episodios for a in animes]) / total, 2) if total > 0 else 0
+        from collections import Counter
+        status_count = Counter([a.status for a in animes])
+        mais_episodios = sorted(animes, key=lambda x: x.episodios, reverse=True)[:3]
+
+        session.close()
+
+        return {
+            "total_animes": total,
+            "media_episodios": media_episodios,
+            "quantidade_por_status": dict(status_count),
+            "top_3_mais_longos": [
+                {
+                    "titulo": a.titulo,
+                    "episodios": a.episodios
+                } for a in mais_episodios
+            ]
+        }, 200
+
+    except Exception as ex:
+        return {"message": f"Erro ao gerar estatísticas: {str(ex)}"}, 500

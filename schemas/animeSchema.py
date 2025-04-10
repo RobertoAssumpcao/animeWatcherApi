@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List
 from Models.anime import Anime
+from typing import List, Dict
 
 class AnimeSchemaRequest(BaseModel):
     """
@@ -37,6 +38,16 @@ class AnimeSchemaRemove(BaseModel):
 
 class AnimeSchemaPath(BaseModel):
     id: int
+
+class AnimeEstatisticaItem(BaseModel):
+    titulo: str
+    episodios: int
+
+class AnimeEstatisticasResponse(BaseModel):
+    total_animes: int
+    media_episodios: float
+    quantidade_por_status: Dict[str, int]
+    top_3_mais_longos: List[AnimeEstatisticaItem]
 
 def list_animes(animes: list[Anime]):
     result = []
