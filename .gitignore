@@ -1,0 +1,30 @@
+# Ambientes virtuais
+venv/
+ENV/
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# SQLite database
+*.sqlite3
+*.db
+
+# Logs
+*.log
+
+# VSCode
+.vscode/
+
+# Docker
+__docker_cache__/
+*.pid
+
+# Arquivos temporários e backups
+*.swp
+*.bak
+*.tmp
+*.old
