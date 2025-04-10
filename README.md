@@ -21,6 +21,18 @@ O objetivo deste projeto é registrar **animes assistidos**, permitindo o gerenc
 
 Este projeto faz parte de um MVP que explora arquitetura baseada em componentes/microsserviços, utilizando Flask com banco de dados SQLite.
 
+## 🧠 Funcionalidade Criativa
+
+Este projeto também implementa uma rota criativa `/animes/estatisticas` que retorna dados agregados como:
+
+- Total de animes cadastrados
+- Média de episódios
+- Quantidade por status (Assistido, Assistindo, etc.)
+- Top 3 animes com mais episódios
+
+Isso fornece uma visão analítica ao usuário e demonstra preocupação com a experiência além do CRUD tradicional.
+
+
 ## Como usar
 
 1. **Clone o repository:**
@@ -117,6 +129,7 @@ SECRET_KEY=uma_chave_secreta
 | PUT    | `/anime/<id>`    | Atualiza um anime existente        |
 | DELETE | `/anime`         | Remove um anime pelo ID            |
 | GET    | `/`              | Redireciona para a documentação    |
+| GET    | `/animes/estatisticas` | Estatísticas dos animes cadastrados |
 
 ---
 
